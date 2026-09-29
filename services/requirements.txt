@@ -1,0 +1,9 @@
+anthropic
+python-dotenv
+requests
+pyyaml
+google-api-python-client
+google-auth-oauthlib
+# Radar v2: Overture Maps açık veri setini (public S3 parquet) okumak için.
+# Ücretsiz, anahtarsız, kartsız — yalnızca radar taramasında kullanılır.
+duckdb

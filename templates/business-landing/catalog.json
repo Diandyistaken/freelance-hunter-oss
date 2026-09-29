@@ -1,0 +1,12 @@
+[
+  {"id":"klasik","ad":"Klasik","aciklama":"Sade ve hızlı tek sayfa — az süslü, net bilgi."},
+  {"id":"scroll","ad":"Scroll","aciklama":"Koyu zemin ve akıcı kaydırma etkileriyle modern, sinematik bir sunum."},
+  {"id":"vitrin","ad":"Vitrin","aciklama":"Açık renkli kurumsal düzenle hizmetleri düzenli ve güven veren biçimde sergiler."},
+  {"id":"neon","ad":"Neon","aciklama":"Çarpıcı yazılar ve parlak renklerle cesur, gece enerjisi yüksek bir görünüm."},
+  {"id":"imza","ad":"İmza","aciklama":"Hareketli tipografi ve hikâye anlatımıyla güçlü, özgün bir marka vitrini."},
+  {"id":"aydinlik","ad":"Aydınlık","aciklama":"Bol beyaz alan, pastel dokunuşlar ve geniş fotoğraf şeritleriyle ferah bir gündüz havası."},
+  {"id":"galeri","ad":"Galeri","aciklama":"Metni azaltıp fotoğrafları mozaik düzende öne çıkaran görsel ağırlıklı bir vitrin."},
+  {"id":"zarif","ad":"Zarif","aciklama":"Krem ve koyu yeşil tonlarda ince çizgili, seçkin ve editoryal bir sunum."},
+  {"id":"enerjik","ad":"Enerjik","aciklama":"Canlı renk blokları, büyük düğmeler ve hareketli sayaçlarla genç bir kimlik."},
+  {"id":"organik","ad":"Organik","aciklama":"Toprak tonları ve yumuşak organik fotoğraf biçimleriyle doğal, el yapımı bir his."}
+]

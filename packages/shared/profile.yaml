@@ -1,0 +1,43 @@
+# Kabiliyet envanteri — skorlayıcının (Claude Haiku) referans kaynağı.
+# BU DOSYAYI KENDİNE GÖRE DÜZENLE: gelen her ilan bu profile göre puanlanır.
+# Ne kadar doğru yazarsan, Telegram'a düşen ilanlar o kadar isabetli olur.
+# Kullanılan alanlar: kimlik.unvan, kimlik.konum, hizmetler[].ad/teknolojiler/referans,
+# genisleme_alanlari. Diğer alanlar yalnızca senin notun içindir.
+
+kimlik:
+  ad: Ad Soyad
+  konum: İstanbul, TR
+  unvan: Full-Stack Developer          # ör. "AI Automation & Full-Stack Developer"
+  diller: [Türkçe, İngilizce]
+
+is_gecmisi:
+  - rol: Örnek Rol
+    kurum: Örnek Kurum
+    tarih: 2025-01 → 2025-06
+    ozet: Bu işte ne yaptığını tek cümleyle yaz.
+
+hizmetler:
+  # Her satır = satabildiğin bir hizmet. "referans" alanına gösterebileceğin
+  # gerçek bir iş/proje yaz; skorlayıcı eşleşmeyi buna bakarak güçlendirir.
+  - id: modern-web
+    ad: Modern / animasyonlu web siteleri
+    teknolojiler: [Next.js, React, Tailwind, Framer Motion]
+    referans: "Kendi portfolyo sitem"
+  - id: ai-agents
+    ad: AI ajanları ve chatbotlar
+    teknolojiler: [Python, Claude API]
+    referans: "Örnek: günlük özet çıkaran bir bot"
+  - id: telegram-bots
+    ad: Telegram botları
+    teknolojiler: [Python]
+    referans: "Örnek: bildirim botu"
+  - id: email-automation
+    ad: E-posta otomasyonu
+    teknolojiler: [Gmail API, OAuth2]
+    referans: "Örnek: gelen kutusu sınıflandırıcı"
+
+# Konfor alanı dışı ama üstlenilebilir (skorlayıcı genişleme alanı sayar):
+genisleme_alanlari:
+  - landing page + SEO paketi
+  - iş akışı otomasyonu
+  - dashboard / iç araç geliştirme

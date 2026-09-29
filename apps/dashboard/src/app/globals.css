@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #07090f;
+  --fg: #e5e9f0;
+  --muted: #8b93a7;
+  --accent: #34d399;
+  --accent-2: #22d3ee;
+  --danger: #f87171;
+  --warn: #fbbf24;
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.09);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  color: var(--fg);
+  background:
+    radial-gradient(1100px 700px at 85% -10%, rgba(34, 211, 238, 0.09), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(52, 211, 153, 0.07), transparent 60%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(52, 211, 153, 0.35);
+}
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* Radar taraması — harita yer tutucusu */
+@keyframes radar-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.radar-sweep {
+  animation: radar-sweep 4s linear infinite;
+  background: conic-gradient(
+    from 0deg,
+    rgba(52, 211, 153, 0.5),
+    rgba(52, 211, 153, 0.08) 60deg,
+    transparent 90deg
+  );
+}
+
+@keyframes ping-dot {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  70% { transform: scale(2.4); opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.radar-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: ping-dot 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-sweep,
+  .radar-dot::after,
+  .map-me::after,
+  .map-hit-secili,
+  .map-hit-secili::after {
+    animation: none;
+  }
+}
+
+/* Harita işaretçileri — WhatsApp canlı konum tarzı */
+.map-me {
+  position: relative;
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #38bdf8;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.25);
+}
+
+.map-me::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  border: 2px solid rgba(56, 189, 248, 0.6);
+  animation: ping-dot 2s ease-out infinite;
+}
+
+.map-hit {
+  display: block;
+  /* Boyut/renk/parlaklık artık JS'ten inline geliyor (skor + duruma göre) —
+     bkz. RadarMap.avIkonu. Buradaki değerler yalnız yedek. */
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background: #34d399;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.7);
+  position: relative;
+}
+
+/* En sıcak lead'ler (hedef 90+): ince bir dikkat halkası — yüzlerce nokta
+   arasında "önce buraya bak" demek için. */
+.map-hit-sicak::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(52, 211, 153, 0.55);
+}
+
+/* Listeden seçilen av — harita üzerinde kalp atışı gibi nabız atıp farklı
+   renkle (pembe-kırmızı) kendini belli eder + genişleyen halka. */
+@keyframes heartbeat-scale {
+  0%, 100% { transform: scale(1); }
+  20% { transform: scale(1.4); }
+  40% { transform: scale(1); }
+  60% { transform: scale(1.25); }
+  80% { transform: scale(1); }
+}
+
+@keyframes heartbeat-ring {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+.map-hit-secili {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  background: #fb3a5e;
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 4px rgba(251, 58, 94, 0.3), 0 0 16px rgba(251, 58, 94, 0.9);
+  animation: heartbeat-scale 1.2s ease-in-out infinite;
+}
+
+.map-hit-secili::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid rgba(251, 58, 94, 0.65);
+  animation: heartbeat-ring 1.2s ease-out infinite;
+}
+
+/* Rehberler sekmesi — docs/*.md'den marked ile üretilen HTML'in okunaklı hali */
+.rehber-icerik {
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.75;
+}
+.rehber-icerik h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 14px; }
+.rehber-icerik h2 { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; margin: 30px 0 12px; padding-top: 14px; border-top: 1px solid var(--glass-border); }
+.rehber-icerik h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.rehber-icerik h3 { font-size: 14px; font-weight: 700; margin: 20px 0 8px; color: var(--accent-2); }
+.rehber-icerik p { margin: 0 0 12px; color: #cdd3e0; }
+.rehber-icerik strong { color: var(--fg); font-weight: 700; }
+.rehber-icerik a { color: var(--accent-2); text-decoration: underline; text-underline-offset: 2px; }
+.rehber-icerik ul, .rehber-icerik ol { margin: 0 0 14px; padding-left: 22px; color: #cdd3e0; }
+.rehber-icerik li { margin: 4px 0; }
+.rehber-icerik li > input[type="checkbox"] { margin-right: 6px; }
+.rehber-icerik blockquote { margin: 0 0 14px; padding: 10px 14px; border-left: 3px solid var(--accent); background: rgba(52, 211, 153, 0.06); border-radius: 0 10px 10px 0; color: var(--muted); }
+.rehber-icerik code { background: rgba(255, 255, 255, 0.08); padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
+.rehber-icerik pre { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; overflow-x: auto; margin: 0 0 14px; }
+.rehber-icerik pre code { background: none; padding: 0; }
+.rehber-icerik hr { border: none; border-top: 1px solid var(--glass-border); margin: 24px 0; }
+.rehber-icerik table { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 13px; }
+.rehber-icerik th, .rehber-icerik td { border: 1px solid var(--glass-border); padding: 8px 10px; text-align: left; }
+.rehber-icerik th { background: rgba(255, 255, 255, 0.05); color: var(--fg); font-weight: 700; }
+.rehber-icerik td { color: #cdd3e0; }
+
+/* OSM kutucuklarını koyu temaya çevir (CARTO anahtar istediği için) */
+.harita-koyu {
+  filter: invert(1) hue-rotate(180deg) brightness(0.72) contrast(0.9) saturate(0.45);
+}
+
+/* Leaflet popup'ları koyu temaya uydur */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #101623;
+  color: #e5e9f0;
+}
+
+.leaflet-popup-content a {
+  color: #22d3ee;
+}
+
+/* Harita popup'ındaki arandı/gizle/düşünüyor işaret butonları */
+.map-popup-durum {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.map-popup-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #0b0f16;
+}
+.map-popup-btn-ok { background: #34d399; }
+.map-popup-btn-x { background: #f87171; }
+.map-popup-btn-dusun { background: #fbbf24; }
+.map-popup-btn-kapandi { background: #94a3b8; }
+
+
+/* Stil kartı hover önizlemesi — kartlar/satırlar kademeli belirir (temsilî) */
+@keyframes stil-belir {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes stil-belir-hafif {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 0.16; transform: translateY(0); }
+}
+.stil-onizleme .stil-satir {
+  opacity: 0;
+  animation: stil-belir 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.stil-onizleme .stil-kart {
+  opacity: 0;
+  animation: stil-belir-hafif 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stil-onizleme .stil-satir { opacity: 1; animation: none; }
+  .stil-onizleme .stil-kart { opacity: 0.16; animation: none; }
+}

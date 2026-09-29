@@ -1,0 +1,50 @@
+# --- Sırlar ve kimlik bilgileri (ASLA push edilmez) ---
+.env
+.env.local
+.env.*.local
+token.json
+credentials.json
+*_token.json
+gmail_token.json
+
+# --- Çalışma verisi (tamamı git dışı: DB, OAuth token, durum, loglar, üretilen siteler) ---
+data/
+*.log
+.hq/
+
+# --- Bağımlılıklar ve derleme çıktıları ---
+node_modules/
+.next/
+out/
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# --- Makineye özel / işletim sistemi ---
+*.lnk
+Thumbs.db
+.DS_Store
+desktop.ini
+folder.ico
+apps/dashboard/tsconfig.tsbuildinfo
+
+# maplibre worker kopyalari — prebuild/predev uretir (scripts/maplibre-worker-kopyala.mjs)
+apps/dashboard/public/maplibre/
+
+# araclar/: ikon uretici + hunter.ico git%27te. cloudflared 52 MB ikili — girmez.
+araclar/cloudflared.exe
+araclar/__pycache__/
+araclar/ikon_onizleme.png
+
+# Demo uygulamasinin bagimliliklari ve statik ciktisi
+apps/demo/node_modules/
+apps/demo/.next/
+apps/demo/out/
+apps/demo/tsconfig.tsbuildinfo
+
+# Vercel proje baglantisi (makineye/hesaba ozel)
+.vercel/

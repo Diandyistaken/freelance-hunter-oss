@@ -1,0 +1,879 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   BEYAZ MASA — ürün demosunun tasarım sistemi.
+
+   Bu dosya Hunter panelinden kopyalanmıştı: radar taraması, harita
+   işaretçileri, Leaflet popup'ları, rehber HTML'i... Demo bunların hiçbirini
+   kullanmıyordu. Hepsi silindi; aşağıdaki her satır bu ürüne ait.
+
+   NEDEN AÇIK ZEMİN: gösterim gündüz, aydınlık bir stüdyoda, parlak camlı bir
+   tablette yapılıyor. Koyu ekran o camda ayna gibi davranıyor. Açık kâğıt
+   yansımayı yutar ve hiyerarşiyi opaklıkla değil mürekkep tonuyla kurmayı
+   zorunlu kılar — üç mürekkep tonu da AA üstü kontrast.
+
+   KURAL: TSX içinde ham renk/ölçü değeri kalmaz. Her şey buradaki
+   belirteçlerden gelir; böylece deri değişince tek değişken değişir.
+   =========================================================================== */
+
+@theme {
+  /* --- KÂĞIT: zemin merdiveni. Saf beyaz değil, ısıtılmış nötr. ---------- */
+  /* #FAF8F4 idi. Beyaz yüzeyle farkı 1.04:1'di ve parlak camlı bir tablette
+     kart ile zemin ayırt edilemiyordu — "yüzey kâğıttan daha parlak olduğu
+     için yükselir" kuralı fiilen çalışmıyordu. #F4F1EA'da fark 1.12:1;
+     mürekkep kontrastları (16.0 / 7.8 / 5.0) hâlâ AA üstü. */
+  --color-kagit: #f4f1ea;        /* sayfa zemini — layout.tsx themeColor ile EŞ TUTULACAK */
+  --color-yuzey: #ffffff;        /* kart/panel — kâğıttan DAHA parlak, bu yüzden yükselir */
+  /* ÇUKUR MERDİVENİ AŞAĞI KAYDIRILDI. Kâğıt #FAF8F4'ten #F4F1EA'ya
+     çıkarılırken çukur ton olduğu yerde (#F0EDE7) kalmıştı: kâğıda karşı
+     kontrastı 1.034:1 ölçüldü, yani parlak camlı bir tablette FİİLEN
+     görünmüyordu. Üç basamaklı yüzey merdiveni sayfa zemininde iki basamağa
+     iniyor, sistemin en çok tekrarlanan malzemesi hiçbir hiyerarşi kurmuyordu
+     — zebra tablosu DOM'da var, ekranda yoktu. Yeni değerler: çukur kâğıda
+     karşı ≈1.10:1, çukur-koyu çukura karşı ≈1.09:1. */
+  --color-cukur: #e9e4d9;        /* gömülü alan: zebra satır, boş durum, dipnot kutusu */
+  --color-cukur-koyu: #dbd4c5;   /* grafik izi (halka), boş koltuk konturu, bölüm kapağı */
+  --color-baski: #ffffff;        /* teklif kâğıdı: ekranda da SAF beyaz —
+                                    ısıtılmış kâğıt tonu yalnız uygulama
+                                    zeminine ait, basılacak yüzeye değil */
+
+  /* --- MÜREKKEP: hiyerarşi OPAKLIKLA DEĞİL bu üç tonla kurulur. ---------
+     Koyu temada 11 ayrı beyaz-opaklık değeri vardı ve hiçbiri birbirinden
+     ayırt edilemiyordu. Burada üç ton var, üçü de kâğıtta AA üstü:
+     16.8:1 / 8.2:1 / 5.2:1. text-white/45 gibi zincirler yasak. */
+  --color-ink: #14161a;          /* başlık, rakam, birincil metin */
+  --color-ink-2: #4c525a;        /* gövde, açıklama */
+  --color-ink-3: #6e747c;        /* dipnot, etiket, kaynak notu — ALT SINIR */
+  --color-uzeri: #ffffff;        /* dolgu üstündeki metin (ink/vurgu dolgulu düğme) */
+
+  /* --- ÇİZGİ SİSTEMİ: Swiss'in asıl derinlik aracı, sıfır renk maliyeti -- */
+  --color-cizgi: #d9d5cc;        /* 1px kıl çizgi — liste ayracı */
+  --color-cizgi-koyu: #c3beb3;   /* tablo ayracı, form kenarı, boş koltuk konturu */
+  --color-cetvel: #14161a;       /* 2px kalın mürekkep cetveli — bölüm başlığının ÜSTÜNDE */
+
+  /* --- VURGU: TEK renk, deriye göre değişir. ---------------------------
+     Buradaki değerler yalnız VARSAYILAN (pilates kiremidi, kâğıtta 5.2:1);
+     gerçek kaynak `deri.ts` içindeki `vurgu` alanı ve BELGE KÖKÜNE
+     (`documentElement`) `vurguDegiskenleri()` ile basılıyor. Tek yer:
+     `::selection` ve `:focus-visible` de kök seviyede tanımlı olduğu için
+     değişken başka bir düğümden yazılınca ikisi eski deride kalıyordu.
+
+     Ekran başına EN FAZLA 3 kullanım: (a) etkin adım, (b) o ekranın tek
+     "önce buraya bak" verisi, (c) bir adet birincil eylem düğmesi.
+     Dördüncüsü kural ihlalidir. */
+  --color-vurgu: #a8472a;
+  --color-vurgu-koyu: #86351d;   /* birincil düğmenin basılı hâli */
+  --color-vurgu-tint: #f6e9e3;
+
+  /* --- DURUM: üç tane, adı ANLAMINI taşır. -----------------------------
+     Renk adıyla (amber/rose) çağrılan kural üç ay yaşamıyor; "dolu ders
+     kırmızı" gibi ters kurallar böyle doğuyor — dolu ders iyi haberdir. */
+  --color-durum-iyi: #1c6b45;
+  --color-durum-iyi-tint: #e2efe7;
+  --color-durum-dikkat: #8a5a00;
+  --color-durum-dikkat-tint: #faf0d8;
+  /* YIKICI RENK VURGUDAN UZAKLAŞTIRILDI. #A2453B idi ve varsayılan (pilates)
+     deride vurgu #A8472A — RGB farkı (6, 2, 17). /danisan'da ikisi aynı anda
+     kadrajdaydı: "Gelemeyeceğim" (yıkıcı) ile "Bekleme listesine gir"
+     (birincil eylem) aynı 1px hayalet kalıpta, aynı puntoda, aynı rust
+     tonunda yan yana duruyordu. Parlak camlı bir tablette gün ışığında fark
+     sıfır; üye "iptal et"i asıl düğme sanıyordu. Sistemin en açık yazılmış
+     renk kuralı (--vurgu = ekranın TEK "önce buraya bak" işareti) en çok
+     bakılan ekranda fiilen çalışmıyordu.
+     Yeni ton mor-kırmızı: hem kiremitten hem laciverten ayrı bir aile,
+     kâğıtta 6.2:1 (AA üstü, 1px kenar olarak da seçiliyor). */
+  --color-durum-yikici: #8d3a52;   /* yalnız yıkıcı eylem; ASLA dolgu, 1px kenar + metin */
+
+  /* --- VERİ: mutlak eşik değil, veri içi göreli sıra. -------------------
+     Bugün on çubuğun onu da aynı renkti. Bir grafikte en fazla üç ton:
+     çoğunluk sönük, en yüksek mürekkep, eyleme çağıran vurgu. */
+  --color-veri-iz: #ece8e1;
+  /* #D6D3CD idi: izle arasındaki kontrast 1.16:1'di ve 20px'lik bir şeritte
+     değerin NEREDE bittiği gözle seçilemiyordu — yanına yüzde yazılmasa
+     grafik hiçbir şey söylemiyordu. 1.68:1'de çubuğun ucu görünüyor. */
+  --color-veri-sonuk: #b9b4ab;
+
+  /* --- TİPOGRAFİ ------------------------------------------------------- */
+  --font-yazi: var(--yazi-ailesi), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-yazi);
+
+  /* ALTI KADEME, yarım basamak yok. Bitişik iki kademe arasında en az 1.29
+     kat fark var; 1px'lik görünmez farklar (11/12/13/14/15/16/17/18px)
+     sistemden çıktı. Tailwind'in kendi ölçeği sıfırlanıyor ki iki rakip
+     ölçek yan yana durmasın. */
+  --text-*: initial;
+
+  /* HARF ARALIĞI BU BELİRTEÇTE YOK — bilinçli.
+     +0.09em yalnız BÜYÜK HARF için doğrudur. Belirteçte durduğu sürece her
+     `text-etiket` çağrısı onu da taşıyordu: "Sıfırla", "üye oldu", "aylık
+     1.000 ₺", "%50", "1 / 5" ve tek harfli avatar daireleri (aralık son
+     glifin sağına da eklendiği için harf dairenin ortasından sola kayıyordu).
+     Küçük harfte kelime dağılıyor ve yazı "bozuk" görünüyordu; tek tek küçük,
+     toplamı "sistemsiz". Aralık artık YALNIZ `.etiket` bileşen sınıfında ve
+     orada `text-transform: uppercase` ile birlikte geliyor — yani ancak büyük
+     harfle. Belirteç yalnız 13px / 16px / 600 taşır. */
+  --text-etiket: 13px;                 /* üst etiket, sütun başlığı, kaynak notu */
+  --text-etiket--line-height: 16px;    /* 1.25 altına İNMEZ: noktalı İ üst satıra girer */
+  --text-etiket--font-weight: 600;
+
+  /* KÜNYE — 13px etiketle 17px gövde ARASINDAKİ ara kademe.
+     `text-etiket font-normal` on bir yerde ÇOK SATIRLI düz cümle için
+     kullanılıyordu (mesaj künyesi, ayar ipuçları, teklif araç notu, danışan
+     satırının durum metni). 13px/16px (1.23) sarmalayan bir cümlede kol
+     mesafesinden okunmuyor ve 26px ritmindeki gövdenin yanında sıkışık bir
+     blok gibi duruyordu; Türkçe ad tamlamaları da ("Uzm. Psk. Elif") satır
+     ortasından bölünüyordu. 20px satır yüksekliği temel çizgi ızgarasının
+     katı. `text-etiket` artık YALNIZ tek satırlık, sarmayan etikette. */
+  --text-kunye: 15px;
+  --text-kunye--line-height: 20px;
+  --text-kunye--font-weight: 400;
+
+  --text-govde: 17px;                  /* istisnasız TEK gövde boyu */
+  --text-govde--line-height: 26px;
+
+  --text-one: 22px;                    /* giriş cümlesi, liste satırı başlığı, h3 */
+  --text-one--line-height: 30px;
+  --text-one--font-weight: 500;
+
+  --text-bolum: 30px;                  /* bölüm başlığı (h2) */
+  --text-bolum--line-height: 36px;
+  --text-bolum--font-weight: 600;
+  --text-bolum--letter-spacing: -0.015em;
+
+  /* VERİ — 44px h1 ile 30px h2 ARASINDAKİ ara kademe, yalnız RAKAM için.
+     `text-sayfa` aynı sayfada hem h1 hem ikincil KPI rakamıydı: /ozet'te
+     "Son 7 günün özeti" ile "32/20/4", /program'da "Bu hafta" ile "33" aynı
+     puntodaydı ve /program'da rakam renkli olduğu için başlıktan DAHA güçlü
+     çıkıyordu — yani hiçbir ekranda sayfa başlığı kazanmıyordu. 44/34 = 1.29,
+     ölçeğin kendi minimum adımı; merdiven artık 76 doruk / 44 h1 / 34 KPI /
+     30 h2 / 22 öne / 17 gövde. */
+  --text-veri: 34px;
+  --text-veri--line-height: 40px;
+  --text-veri--font-weight: 700;
+  --text-veri--letter-spacing: -0.02em;
+
+  --text-sayfa: 44px;                  /* iç sayfa h1, paket toplamı */
+  --text-sayfa--line-height: 48px;
+  --text-sayfa--font-weight: 700;
+  --text-sayfa--letter-spacing: -0.025em;
+
+  --text-kapak: clamp(56px, 7.4vw, 76px);  /* YALNIZ kapak h1 ve sayfa başına TEK doruk rakam */
+  --text-kapak--line-height: 1.02;
+  --text-kapak--font-weight: 700;
+  --text-kapak--letter-spacing: -0.035em;
+
+  /* --- BOŞLUK: yedi adım, yarım adım yok. -------------------------------
+     Ritmi kuran şey büyük boşluktur: bölüm arası (52) ile kart içi (20)
+     arasında 2.6 kat fark var. Her yer 16-20px olduğu için gruplar
+     birbirine karışıyordu.
+
+     İŞ BÖLÜMÜ (kalıcı, bekleyen göç değil): BOŞLUK — padding, margin, gap —
+     yalnız b1..b7'den gelir. Tailwind'in 4px'lik sayısal skalası açık
+     bırakıldı ama yalnız İKON ve CİHAZ ölçüleri için (`size-4`, `w-[3px]`,
+     durum çubuğu yüksekliği): onlar ritim değil, nesne boyutudur. Basılabilir
+     öğelerin yüksekliği de rastgele sayı değil, aşağıdaki iki addan gelir. */
+  --spacing-b1: 4px;    /* ikon-metin */
+  --spacing-b2: 8px;    /* satır içi öğeler */
+  --spacing-b3: 12px;   /* liste öğeleri arası */
+  --spacing-b4: 20px;   /* kompakt kart iç dolgusu */
+  --spacing-b5: 32px;   /* ana yüzey iç dolgusu, blok arası */
+  --spacing-b6: 52px;   /* BÖLÜM arası */
+  --spacing-b7: 84px;   /* sayfa açılış boşluğu (yalnız kapak ve teklif) */
+
+  /* Basılabilir öğe yükseklikleri — `h-11`/`h-14` gibi anlamsız sayılar
+     yerine iş adları. 44px dokunma alt sınırı, 56px birincil eylem. */
+  --spacing-dokunma: 44px;
+  --spacing-eylem: 56px;
+
+  /* --- KÖŞE: üç değer + iki istisna, her biri anlam taşır. --------------
+     36 rounded-xl + 35 rounded-2xl karmaşası bitti. Veri alanlarında
+     yarıçap BİLİNÇLİ olarak sıfır: "her yer aynı yuvarlak kart" hissini
+     kesen şey tam olarak budur. */
+  --radius-kontrol: 8px;   /* düğme, rozet, sekme, input */
+  --radius-yuzey: 14px;    /* kart, panel, liste satırı */
+  --radius-sahne: 28px;    /* kaplama, ayarlar levhası */
+  --radius-cihaz: 44px;    /* YALNIZ telefon kabuğu */
+  /* Teklif kâğıdı 28px yuvarlak köşeliydi; A4 bir sayfada o köşe fiziksel
+     olarak imkânsız ve ekrandaki önizleme masaya konan nesneyle örtüşmüyordu
+     — kâğıt "web kartı kılığında kâğıt" gibi duruyordu. 2px keskin köşe A4
+     yanılsamasını tamamlar; kâğıdı zeminden ayıran şey zaten kalkik-3. */
+  --radius-kagit: 2px;     /* YALNIZ teklif kâğıdı */
+
+  /* --- YÜKSELTİ: gölgeler SICAK tonlu. ---------------------------------
+     Gri gölge kâğıdı kirletir ve "bootstrap kartı" görüntüsü verir.
+     Kenarlık gölgenin ring'i içindedir; bu yüzeylerde ayrıca `border`
+     kullanılmaz. Kural: kenarlık ve gölge aynı anda olmaz. */
+  --shadow-kalkik-1: 0 1px 2px rgba(58, 42, 30, 0.06), 0 0 0 1px rgba(58, 42, 30, 0.07);
+  --shadow-kalkik-2: 0 2px 4px rgba(58, 42, 30, 0.06), 0 14px 28px -10px rgba(58, 42, 30, 0.14);
+  --shadow-kalkik-3: 0 24px 60px -20px rgba(58, 42, 30, 0.28);
+
+  /* HAREKET burada TANIMLI DEĞİL: üç eğri de `animasyon.tsx` içindeki
+     GIRIS / VERI / ONAY sabitlerinden geliyor. İkisi birden tanımlıyken
+     CSS kopyaları hiç kullanılmadı ve sistemin iki kaynağı varmış gibi
+     göründü — tek kaynak framer-motion tarafı. */
+}
+
+/* --------------------------------------------------------------- temel --- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-kagit);
+  color: var(--color-ink);
+  font-family: var(--font-yazi);
+  font-size: 17px;
+  line-height: 26px;
+  font-stretch: 100%;           /* arayüzün tamamı normal genişlik; kapak 112'ye çıkar */
+  min-height: 100svh;
+  /* Türkçede tarayıcı tirelemesi yanlış heceliyor; kapalı kalıyor. */
+  hyphens: none;
+}
+
+/* @layer base ZORUNLU: `text-wrap` aslında `white-space`'in bir uzun
+   özelliğidir (text-wrap-mode). Bu iki kural katmansız yazılınca Tailwind'in
+   `utilities` katmanındaki `truncate`in `white-space: nowrap`ını EZİYORDU —
+   yani "truncate" yazan her satır sessizce alt satıra kayıyordu ve dar
+   kuyruk kolonunda satırlar iki katına çıkıyordu. Katman içinde yazılınca
+   utility kazanıyor, gerisi aynı kalıyor. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;         /* başlıkta tek kelimelik dul satır kalmasın */
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+::selection {
+  background: var(--color-vurgu-tint);
+}
+
+/* Odak görünür olmalı: demo tablette gösteriliyor ama klavyeyle de geziliyor. */
+:focus-visible {
+  outline: 2px solid var(--color-vurgu);
+  outline-offset: 2px;
+}
+
+/* Kâğıt dokusu — %2 opaklıkta gren. Tek kural; kaldırılırsa hiçbir şey
+   bozulmaz. Düz beyaz bir yüzeyin "ekran" değil "kâğıt" gibi okunmasını
+   sağlıyor. Tıklamayı engellemez, baskıda kapalıdır. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------- ortak parçalar --- */
+
+@layer components {
+  /* ORTAK IZGARA — her ekran aynı kabuk. Sunum 768px, Özet 977px gibi
+     ekrandan ekrana değişen genişlikler bitti. Hedef cihaz 1024×768 yatay
+     tablet: kenar payı 32px, dar ekranda 24px. */
+  .kabuk {
+    width: min(100% - 68px, 1080px);
+    margin-inline: auto;
+  }
+
+  @media (max-width: 767px) {
+    .kabuk {
+      width: min(100% - 40px, 1080px);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     TELEFON ÖLÇEĞİ (≤767px)
+
+     Kullanıcı kararı (15 Eyl 2026): sunum artık TELEFONDAN da gösterilecek —
+     "telefonu eline verdiğimde anlatabileyim". Ölçüldü: 375×812'de ilk
+     slayt bile 308px taşıyordu; kapak başlığı 56px, üst şerit iki satıra
+     kırılıp 113px yer kaplıyordu. Yani desteyi telefonda çevirmek mümkün
+     değildi.
+
+     Tipografi ve boşluk ölçeği TEK YERDEN geldiği için düzeltme de tek
+     yerden: merdivenin oranları korunur, yalnız basamaklar küçülür.
+     76/44/34/30/22/17 → 34/26/22/20/17/16. Boşlukta en çok büyük adımlar
+     kısılır (b7 84→36) çünkü ritmi bozan onlar değil, ekranı yiyen onlar.
+
+     GÖVDE 16px'in ALTINA İNMEZ: iOS Safari 16px'ten küçük girdi alanında
+     sayfayı otomatik yakınlaştırıyor ve müşterinin elindeki telefonda
+     düzen kayıyor. */
+  @media (max-width: 767px) {
+    :root {
+      --text-govde: 16px;
+      --text-govde--line-height: 24px;
+
+      --text-kunye: 14px;
+      --text-kunye--line-height: 19px;
+
+      --text-one: 17px;
+      --text-one--line-height: 24px;
+
+      --text-bolum: 20px;
+      --text-bolum--line-height: 26px;
+
+      --text-veri: 22px;
+      --text-veri--line-height: 28px;
+
+      --text-sayfa: 26px;
+      --text-sayfa--line-height: 31px;
+
+      --text-kapak: 34px;
+      --text-kapak--line-height: 1.08;
+
+      --spacing-b5: 20px;
+      --spacing-b6: 28px;
+      --spacing-b7: 36px;
+    }
+  }
+
+  /* Yatay kaydıran şeritte çubuk görünmez: dokunmatik cihazda zaten yok,
+     masaüstünde 15px'lik gri bant sekmelerin altında yabancı bir çizgi
+     gibi duruyor. */
+  .oluk-gizli {
+    scrollbar-width: none;
+  }
+  .oluk-gizli::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* AYNI OLUK, KAYDIRMAYAN KUTUDA DA AYRILIR.
+     `.sahne-akis` hem kaydıran kutu hem `.kabuk` olduğu için kaydırma
+     çubuğunun payı içerik alanından yeniyor: içeriğin sağ kenarı 982'de,
+     üst şeridinki 992'de bitiyordu. Şerit kaydırmadığı için `scrollbar-gutter`
+     tek başına ona işlemiyor — `overflow: hidden` onu bir kaydırma kutusu
+     yapıyor (hiçbir şey taşmadığı için görünür etkisi yok) ve `stable` aynı
+     payı orada da ayırıyor. `scrollbar-width: thin` İKİSİNDE DE aynı olmak
+     zorunda: pay 15px'e karşı 10px olursa kenarlar bu kez ters yönde kayar. */
+  .oluk {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+  }
+
+  /* SAHNE — uygulamanın dış kabuğu. Yüksekliği ekrana SABİTLENİR ve kaydırma
+     içeride olur. Sebebi: Sunum bir slayt gibi kurulu (ilerleme / içerik /
+     eylem); şeridin yüksekliği ekrandan hesaplanamazsa alt eylem şeridi
+     ekranın altına taşıyor ve "İleri" düğmesi görünmüyor. Gövde kaydırması
+     yerine akış katmanı kaydırılınca üst şerit de yerinde kalıyor. */
+  .sahne {
+    display: flex;
+    flex-direction: column;
+    height: 100svh;
+  }
+
+  .sahne-akis {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    /* Tek eksende `auto` verilince DİĞER eksen de `visible`den `auto`ya
+       düşer: birkaç piksellik bir taşma ekranın altında kalıcı gri bir yatay
+       çubuk doğuruyordu — "bitmemiş yazılım" demenin en klasik yolu.
+       `clip` kaydırmayı tamamen kapatır; `hidden` desteklemeyen için yedek. */
+    overflow-x: hidden;
+    overflow-x: clip;
+    /* KAYDIRMA ÇUBUĞUNUN YERİ HER EKRANDA AYRILIR. `.sahne-akis` aynı zamanda
+       `.kabuk` olduğu için 15px'lik çubuk içerik alanından yeniyordu: kaydıran
+       ekranlarda (Program, Özet, Danışan, Teklif) içeriğin sağ kenarı 977'de,
+       üst şeridinki 992'de bitiyordu — sekme değiştirirken sağ kenar oynuyor.
+       `stable` kaydırma olsa da olmasa da aynı payı ayırır. */
+    scrollbar-gutter: stable;
+    /* Gri bir tarayıcı çubuğunun kâğıt yüzeye yapışması "ürün" değil "web
+       sayfası" işareti. İnce ve kâğıdın kendi çizgi renginde. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-cizgi-koyu) transparent;
+  }
+
+  /* Baskıda ekran yüksekliği anlamsız: teklif kâğıdı tek ekrana sığmak
+     zorunda değil, kırpılmamalı. */
+  @media print {
+    .sahne {
+      height: auto;
+    }
+
+    .sahne-akis {
+      overflow: visible;
+    }
+  }
+
+  /* Okuma ölçüsü: 1080px genişlikte tek satır metin yasak. */
+  .olcu {
+    max-width: 64ch;
+  }
+
+  /* Üst etiket (kicker). Bugüne kadar hiç olmayan ara kademe; hiyerarşinin
+     yarısını tek başına bu kuruyor.
+     HARF ARALIĞININ TEK YERİ BURASI: uppercase ile aynı kuralda durduğu için
+     aralık ancak büyük harfle birlikte gelebiliyor (bkz. --text-etiket). */
+  .etiket {
+    font-size: var(--text-etiket);
+    line-height: var(--text-etiket--line-height);
+    font-weight: var(--text-etiket--font-weight);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+
+  /* 2px mürekkep cetveli — "bölüm buradan başlıyor" demenin en ucuz ve en
+     güçlü yolu. Başlığın ÜSTÜNDE, kolon genişliğince. */
+  .cetvel {
+    display: block;
+    height: 2px;
+    background: var(--color-cetvel);
+    transform-origin: left center;
+  }
+
+  /* Rakam politikası: bu üründe rakam = satış. Sayarken genişlik zıplamaz. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Kapak ve doruk rakam: aynı ailenin GENİŞLİK ekseni. Karakter ikinci bir
+     font ailesiyle değil bununla kuruluyor — bedeli sıfır. */
+  .genis {
+    font-stretch: 112%;
+  }
+
+  /* BİRİM İŞARETİ daima rakamın 0.62 katı ve bir ton açık: göz önce sayıya
+     gitsin. ₺ için yazılmıştı ama % bundan muaf tutulmuştu: "%58"de yüzde
+     işareti 76px/700 basılıyor ve sayfanın doruk rakamı kendi işaretiyle
+     yarışıyordu. Artık Sayac'ın önek/sonek metni de bu sınıfa sarılı, yani
+     ₺ ile % aynı kurala tabi. Ölçü `em` tabanlı olduğu için hem 76px dorukta
+     hem 44px halkada hem 13px sütun etiketinde doğru oranda küçülüyor.
+     Türkçede % rakamdan ÖNCE gelir; 0.04em optik pay onun içindir. */
+  .para {
+    font-size: 0.62em;
+    font-weight: 500;
+    color: var(--color-ink-3);
+    margin-inline-end: 0.04em;
+  }
+
+  /* DORUK RAKAM — yönün tek imza hamlesi.
+     Kart içine hapsolmuş rakam "veri"dir, kolonun kenarını taşan rakam
+     "manşet"tir.
+
+     TAŞMA YATAYA ALINDI. Dikey örtüşme denendi ve YARIM KALDI: ölçüldü,
+     rakamın mürekkebi ile cetvel arasında 1.56px vardı — ne deliyor ne
+     açılıyor. Fiyat sayfasında bu, 45.000 ₺'nin dibine yapışmış 2px kalın
+     bir çizgi demekti ve kol mesafesinden ALTI ÇİZİLİ FİYAT gibi okunuyordu:
+     tam olarak dürüstlük kuralının yasakladığı görüntü. Üstelik 1.5px'lik
+     pay parlak camlı ucuz bir tablette hiç görünmüyor, iki katman yapışıyor.
+
+     Şimdi: dikeyde 0.08em NET pay var (cetvel bağımsız bir bölüm ayracı gibi
+     okunuyor, altı çizili izlenimi bitiyor); manşet karakteri ise rakamın ve
+     cetvelin kolon kenarından 0.06em taşmasıyla kuruluyor. İkisi de aynı
+     miktarda taştığı için sol kenarları hizalı; taşan şey bloğun KENDİSİ,
+     yani etiket ve gövde metni ona göre içeride kalıyor. Kırpılma riski yok:
+     taşma 5px, iki çağrı yerinde de en az 32px kenar payı var.
+
+     TAŞMA `em` DEĞİL px: cetvel doruk rakamın kardeşi, kendi punto'su gövde
+     puntosu (17px). `0.06em` ikisinde iki farklı sayıya çözülür (4.6px'e
+     karşı 1px) ve sol kenarlar tutmaz. Aynı px iki kuralda da yazılı.
+
+     TAŞMA ÖLÇÜSÜ 5px DEĞİL 20px. 5px ölçüldü ve kol mesafesinde "kasıtlı
+     taşma" değil "bir şey kaymış" diye okunuyordu: 76px'lik bir rakamda
+     %6,5'lik bir kayma, hizalı bırakmaktan da kötü bir ara durum. 20px o
+     rakamın ~%26'sı; manşet olduğu tartışmasız. Kırpılma riski yok: iki çağrı
+     yerinde de (fiyat kartı p-b5 = 32px dolgu, Özet kolonu 32px kenar payı)
+     en az 12px pay kalıyor ve `.sahne-akis` yatay taşmayı zaten kırpıyor. */
+  .doruk {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin-inline-start: -20px;
+  }
+
+  /* CETVEL ARTIK YALNIZ /ozet'te doruk rakamın ALTINDA.
+     Fiyat sayfasında ölçüldü: rakam kutusu 302px, cetvel 387px, ikisi aynı
+     x'ten başlıyor ve arada 3px var — yani kalın siyah çizgi rakamdan yalnız
+     %28 uzun ve dibine yapışık. Kol mesafesinden bu ALTI ÇİZİLİ FİYAT olarak
+     okunuyordu, tam olarak dürüstlük kuralının (fiyat.ts) yasakladığı
+     görüntü. Orada cetvel kartın en üstüne, etiketin ÜSTÜNE alındı; diğer
+     dört ekranla aynı kural işliyor.
+     /ozet'te sorun yok çünkü cetvel rakamdan 2.8 kat uzun, yani ayraç gibi
+     okunuyor — ama dikey pay orada da 0.08em'den (≈6px) b4'e çıkarıldı:
+     6px iki katmanı parlak camlı bir tablette yapıştırıyordu. Pay `.doruk`un
+     kendisinde DEĞİL bu kardeş kuralında: cetvelsiz çağrı yeri boşuna
+     alt boşluk taşımasın. */
+  .doruk + .cetvel {
+    position: relative;
+    z-index: 0;
+    width: calc(100% + 20px);
+    margin-inline-start: -20px;
+    margin-block-start: var(--spacing-b4);
+  }
+
+  /* ÖNEKLİ DORUK — birim işareti rakamdan ÖNCE geldiğinde (Türkçede "%58").
+     TAŞMA BU BİÇİMDE KURULMAZ; BURADA MANŞETİ ÖLÇEK KURAR.
+
+     `.doruk` SONEK için yazıldı: -20px doğrudan rakama uygulanıyor ve
+     "45.000 ₺" kolonun kenarını KENDİ RAKAMIYLA deliyor — taşan şey gözün
+     aradığı şey. Önekte bu imkânsız: kolonu delecek olan glif 0.62em'lik
+     soluk "%" işareti.
+
+     İki deneme de başarısız oldu ve ikisi de canlıda ölçüldü:
+      1. Rakama -20px verildi → kenarı delen soluk "%" oldu, rakamın kendisi
+         etiketten 25px İÇERİDE kaldı: "kasıtlı manşet" değil "hizalama
+         kaymış" okunuyordu.
+      2. Taşma komşuları içeri iterek taklit edildi (`padding-inline-start:
+         68px`) → ladder çıktı: tek bir 160px'lik blokta ÜÇ sol kenar
+         (cetvel 34, rakam 81, etiket 102) ve blok metninin tamamı sayfa
+         marjından 68px içeride, hiçbir ızgara çizgisine oturmayan bir metin
+         adası.
+
+     ÜÇÜNCÜ YOL VARDI VE ARANAN OYDU: TAŞMAYI RAKAMDAN DEĞİL BLOKTAN AL.
+     İki denemenin ortak hatası taşmayı tek bir glife (rakama ya da işarete)
+     yüklemekti; oysa fiyat slaytında da taşan şey satırın KENDİSİ. Blok
+     -20px kayar, içindeki etiket ve künye 20px dolguyla sayfa marjına geri
+     döner: taşan tek şey "%58" satırı olur, tıpkı orada taşanın "45.000 ₺"
+     satırı olması gibi. Yorumdaki "46px pay gerekir" endişesi ölçüyü yanlış
+     kuruyordu — gereken pay taşma kadardır, yani 20px, ve /ozet kolonunun
+     sol payı 34px. Böylece yönün imza hamlesi beş ekranın ikisinde birden,
+     TEK kuralla çalışıyor: bir kez uygulanan hamle sistem değil tekil
+     karardır.
+
+     İŞARET RAKAMIN ALTINDA KALIR. `.para`nın 0.62em'i 76px'lik dorukta 47px
+     ediyordu, yani sayfanın h1'inden (44px) BÜYÜK bir soluk gri "%" kolonun
+     kenarını tutuyor ve göz önce griyi buluyordu. Önekte oran sonektekiyle
+     aynı olamaz: sonek okumanın sonunda, önek başında. 0.46em (≈35px) ve bir
+     ton koyu mürekkep — işaret okunur ama rakamla yarışmaz. */
+  .doruk-onek {
+    margin-inline-start: -20px;
+  }
+
+  /* Blok kaydı, içerik geri gelir: etiket ve künye sayfanın diğer
+     etiketleriyle AYNI x'te kalır. */
+  .doruk-onek > * {
+    padding-inline-start: 20px;
+  }
+
+  /* RAKAM DA ETİKETLE AYNI x'TE BAŞLAR.
+     Dolgusuz bırakılınca blokta ÜÇ sol kenar oluyordu: cetvel 14, etiket 34,
+     rakam 48 — çünkü kolonun kenarını delen glif rakam değil ondan önce gelen
+     soluk "%" oluyordu. Yani sayfanın tek doruk rakamı ekrandaki her şeyden
+     DAHA İÇERİDE duruyordu ve imza hamlesi "hiza kaymış" diye okunuyordu.
+     Rakam etiket hizasına (34) dönüyor; taşma payını aşağıdaki `.para`
+     birebir dolduruyor. Sonuç: blokta iki sol kenar kalır — 14 (cetvel + %)
+     ve 34 (etiket + rakam + künye). */
+  .doruk-onek .doruk-rakam {
+    display: block;
+    padding-inline-start: 20px;
+  }
+
+  /* Cetvel rakamla aynı sol kenardan başlar, sağ ucu kolonun kenarında
+     biter — fiyat slaytındaki `.doruk + .cetvel` ile birebir aynı davranış. */
+  .doruk-onek .cetvel {
+    width: calc(100% + 20px);
+    padding-inline-start: 0;
+    margin-block-start: var(--spacing-b4);
+  }
+
+  /* İŞARET TAŞMA PAYINI TAM DOLDURUR — ne eksik ne fazla.
+     Genişliği 20px'e sabitlenip aynı kadar negatif marjla geri çekilince
+     "%" bloğun -20px'lik kaymasının İÇİNE oturuyor: sol kenarı cetvelinkiyle
+     (14) çakışıyor, sağ kenarı rakamın başladığı yerde (34) bitiyor.
+     Punto 0.46em'den (35px) 0.29em'e (≈22px) iniyor: "%" glifinin genişliği
+     puntosunun ~0.89 katı, yani 20px'lik paya sığan en büyük ölçü budur.
+
+     TABAN ÇİZGİSİ DEĞİL, TEPE ÇİZGİSİ. `inline-block` taban çizgisini
+     koruyor ama 22px'lik bir işaret 76px'lik rakamın tabanına oturunca
+     ekranda işaret gibi değil virgül gibi okunuyordu — kol mesafesinden
+     "rakamın altına bir şey düşmüş" görüntüsü. İşaret rakamın OMZUNA
+     çıkıyor: rakamın mürekkep tepesi taban çizgisinin 53px, işaretinki 16px
+     üstünde; aradaki 37px = 1.68 × 22px. İkisinin tepesi birebir hizalanınca
+     birim işareti kasıtlı bir üst simge gibi duruyor. */
+  .doruk-onek .para {
+    display: inline-block;
+    width: 20px;
+    margin-inline-start: -20px;
+    margin-inline-end: 0;
+    vertical-align: 1.68em;
+    font-size: 0.29em;
+    color: var(--color-ink-2);
+  }
+
+  /* KÂĞIT ZEMİNİ ÜSTÜNDEKİ ÇUKUR KUTU.
+     Çukur ton kâğıda karşı ancak 1.10:1; beyaz kart İÇİNDE bu yeterli (kartla
+     farkı 1.16:1) ama doğrudan sayfa zemininde duran kutular hâlâ zayıf
+     okunuyor. Kıl kenar sınırı garantiye alıyor. Bu yüzeylerde gölge YOK,
+     yani "kenarlık ve gölge aynı anda olmaz" kuralı ihlal edilmiyor. */
+  .cukur-zeminde {
+    background: var(--color-cukur);
+    box-shadow: inset 0 0 0 1px var(--color-cizgi);
+  }
+
+  /* DOKUNMA HEDEFİ en az 44×44px — görsel yükseklikten BAĞIMSIZ.
+     Sabit bir `inset` yetmiyordu: 28px'lik ilerleme adımını 40px'e, 16px'lik
+     metin düğmesini 32px'e çıkarıyor, ikisi de sınırın altında kalıyordu.
+     `max()` ile hedef her zaman en az 44px oluyor, öğe ne kadar ince olursa
+     olsun. Tablette parmakla ıskalanan düğme ürünü ucuz gösteriyor.
+
+     SAHİP KONUMLU OLMAK ZORUNDA — ve bunu artık kural kendisi garanti ediyor.
+     `::after` mutlak konumlu; `width/height: 100%` SAHİBİN değil, en yakın
+     konumlu atanın yüzdesidir. Eskiden bu invariant her çağrı yerinde elle
+     sağlanıyordu (`hedef relative ...`) ve üye defterinin iki künye kutusunda
+     unutuldu. Sonuç ölçüldü: 375×812'de her iki kutunun görünmez katmanı
+     375×812 px — TELEFON EKRANININ TAMAMI. Ekranın neresine dokunulursa
+     dokunulsun tıklama DOM'da son gelen kutuya, "Ödeme bekleyen"e gidiyordu.
+     Stüdyo sahibi dört tur boyunca tam olarak bunu söyledi: "hangisine
+     basarsam basayım Ödeme bekleyen'e atıyor."
+     Neden yalnız gerçek cihazda: framer-motion giriş animasyonu sürerken
+     kapsayıcıya `transform` yazıyor ve transform'lu öğe mutlak torunları için
+     kapsayıcı blok olur — katman küçük bir kutuya hapsoluyor. Animasyon
+     bitince transform kalkıyor, katman ilk konumlu ata bulamayıp görüntü
+     alanına yayılıyor. Arka planda sayılan test tarayıcısında animasyon hiç
+     bitmediği için hata orada hiç görünmedi.
+     `utilities` katmanı `components`'tan sonra geldiği için `hedef absolute`
+     yazan bir öğe yine absolute kalır; bu kural yalnız statik olanı düzeltir. */
+  .hedef {
+    position: relative;
+  }
+
+  .hedef::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+  }
+
+  /* Telefon kabuğunun içinde kaydırma çubuğu GÖRÜNMEZ: gerçek bir telefonda
+     öyle bir çubuk yok ve göründüğü anda cihaz yanılsaması bozuluyor.
+     Kaydırılabilirliği alt kenardaki 24px kâğıt maskesi söylüyor. */
+  .cubuksuz {
+    scrollbar-width: none;
+  }
+
+  .cubuksuz::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Saat kolonları rakam genişliğinden ötürü satırdan satıra kaymasın.
+     "09:00" ile "11:30" aynı yeri tutar. */
+  .saat {
+    min-width: 5ch;
+  }
+
+}
+
+/* HAREKETİ KISMIŞ KULLANICI — framer tarafını kök `MotionConfig` kapatıyor
+   (bkz. Hareket.tsx), ama grafik dolumları artık CSS geçişiyle çalışıyor ve
+   onlar o ayara kendiliğinden uymuyor. Tek kural ikisini de kapsıyor. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Tablette hover diye bir şey yok. Tailwind v4 `hover:` varyantını zaten
+   `@media (hover: hover)` içine sarıyor, bu yüzden koddaki hover süsleri
+   gösterim cihazında hiç tetiklenmiyor; yatırım `whileTap`'e yapıldı. */
+
+
+/* ------------------------------------------------------- teklif kâğıdı --- */
+
+/* KÂĞIT EKRANDA DA A4 ÖLÇÜSÜNDE DİZİLİR.
+ *
+ * Uygulamanın tip ölçeği (17px gövde) tablet ARAYÜZÜ içindir: kol mesafesinden
+ * parmakla kullanılan bir ekranın ölçüsü. Kâğıt başka bir ortam — elde tutulur,
+ * 30 cm'den okunur ve A4'e sığmak zorundadır. Aynı içerik 17px'le dizilince
+ * kâğıt 2.08 oranında, yani A4'ten 1,5 kat uzun bir şeride dönüyordu: ekranda
+ * "kâğıt" değil "uzun bir kaydırma" gibi okunuyordu ve baskıda ikinci sayfaya
+ * taşıyordu.
+ *
+ * Çözüm ölçeği bozmak değil, ORTAMIN ölçüsünü kullanmak: 18mm kenar payı ve
+ * 10pt gövdenin 96dpi'deki karşılığı. Kademeler arası oranlar birebir korunuyor
+ * (13 / 17 / 23 / 34), yalnız ortak katsayı değişiyor. Ekranda görünen şey artık
+ * yazıcıdan çıkacak olanın önizlemesi.
+ *
+ * Bu kurallar KATMANSIZ yazılıyor: Tailwind'in kendi utility katmanını ancak
+ * böyle geçiyorlar. Kapsam `.kagit` ile tek sayfaya kilitli.
+ */
+/* Satır yüksekliği ekranda da BASKIDAKİ oranla (1.38) diziliyor. 19px'te
+   (1.46) psikolog derisinin içeriği A4 kutusunun dibine 3px kala varıyordu;
+   işletme adı uzun olup başlık iki satıra düşünce kutu taşacak, taşan satır
+   da sessizce kırpılacaktı. 18px hem oranı baskıyla eşitliyor hem ~45px
+   pay bırakıyor. */
+.kagit {
+  width: 794px;          /* A4 genişliği, 96dpi */
+  padding: 57px;         /* 15mm — @page ile aynı kenar payı */
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.kagit .text-govde {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.kagit .text-kunye {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.kagit .text-one {
+  font-size: 17px;
+  line-height: 23px;
+}
+
+.kagit .text-bolum {
+  font-size: 23px;
+  line-height: 28px;
+}
+
+.kagit .text-veri {
+  font-size: 26px;
+  line-height: 30px;
+}
+
+.kagit .text-sayfa {
+  font-size: 34px;
+  line-height: 37px;
+}
+
+/* PARA İŞARETİ KÂĞITTA BİR TON KOYU VE BİR ADIM BÜYÜK.
+   `.para`nın 0.62em'i 76px'lik dorukta doğru; 13px'lik kâğıt satırında ₺
+   glifi ~8px'e düşüyor ve `--ink-3` ile birlikte fiilen kayboluyordu:
+   "15.000 ₺ · aylık 1.000 ₺" satırında rakamların NE olduğu belirsizleşiyor
+   (15.000 saat mi, ders mi?). Tek oran iki ortamda birden doğru olamaz. */
+.kagit .para {
+  font-size: 0.78em;
+  color: var(--color-ink-2);
+}
+
+.kagit .etiket {
+  font-size: 10px;
+  line-height: 13px;
+}
+
+/* ETİKET KADEMESİNİN ALT SINIRI KÂĞITTA DAHA YÜKSEK — `.para` ile aynı
+   mantık. `.etiket` büyük harf ve tek kelimelik bir başlık; 10px'te okunuyor.
+   Ama `.text-etiket` küçük harfli bir bilgi satırı taşıyor ("teslim 2 hafta")
+   ve 10px + ink-3, kâğıtta gri tonlamayla birlikte fiilen kayboluyordu: aynı
+   bilgi sunum slaytında 17px gövde metninde geçiyor, yani tek bilgi iki
+   ortamda iki farklı okunabilirlik sınıfındaydı. Harf aralığı EKLENMİYOR:
+   +aralık yalnız büyük harfle doğrudur (bkz. --text-etiket), buradaki metin
+   küçük harf. */
+.kagit .text-etiket {
+  font-size: 11.5px;
+  line-height: 15px;
+}
+
+/* Baskıda kenar payını @page veriyor; kâğıdın kendi dolgusu sıfırlanır ve
+   ölçüler px'ten pt'ye geçer. */
+@media print {
+  .kagit {
+    width: auto;
+    padding: 0;
+    font-size: 9.5pt;
+    line-height: 1.38;
+  }
+
+  .kagit .text-govde {
+    font-size: 9.5pt;
+    line-height: 1.38;
+  }
+
+  .kagit .text-kunye {
+    font-size: 8.5pt;
+    line-height: 1.3;
+  }
+
+  .kagit .text-one {
+    font-size: 13pt;
+    line-height: 1.3;
+  }
+
+  .kagit .text-bolum {
+    font-size: 17pt;
+    line-height: 1.2;
+  }
+
+  .kagit .text-sayfa {
+    font-size: 26pt;
+    line-height: 1.1;
+  }
+
+  .kagit .etiket {
+    font-size: 7.5pt;
+    line-height: 1.3;
+  }
+
+  /* Baskıda gri tonlama --ink-3'ü ayrıca soluklaştırıyor; kutunun içindeki
+     teslim satırı kendi mürekkebini bir ton koyu alsın. */
+  .kagit .text-etiket {
+    font-size: 8.5pt;
+    line-height: 1.3;
+    color: var(--color-ink-2);
+  }
+
+  /* Baskıda gri tonlama `--ink-3`ü ayrıca soluklaştırıyor; işaret metnin
+     kendi mürekkebini alsın. */
+  .kagit .para {
+    font-size: 0.8em;
+    color: inherit;
+  }
+}
+
+/* -------------------------------------------------------------- baskı ---- */
+
+/* Görüşmeden sonra masada kalan tek nesne teklif kâğıdının çıktısı. Ekran
+   kâğıtla aynı yazıyı, aynı mürekkebi ve aynı cetvelleri kullandığı için
+   çıktı "dışarıdan gelen ek" değil, demonun son sayfası oluyor. */
+/* 15mm kenar payı — 18mm BİLİNÇLİ OLARAK UYGULANMADI.
+   Ölçüldü: 15mm'de içerik kutunun dibine 1123px'in 1035'inde (pilates) ve
+   1063'ünde (psikolog) varıyor. 18mm'ye çıkmak hem 22px dikey pay yer hem de
+   satırları daraltıp metni uzatıyor; psikolog derisi taşıyor. Kâğıdın TEK
+   sayfa olması (masada kalan tek nesne o) kenar payının 3 milimetresinden
+   daha ağır basan kural. 15mm standart bir belge payı ve ekrandaki önizleme
+   de aynı payı kullanıyor (.kagit). */
+@page {
+  size: A4;
+  margin: 15mm;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    /* 10.5pt'te teklif kâğıdı ikinci sayfaya taşıyordu; 10pt/1.4 ile aynı
+       içerik tek A4'e sığıyor ve kol mesafesinde hâlâ rahat okunuyor. */
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+
+  /* Gren mürekkep yakar, kâğıtta işi yok. */
+  body::before {
+    display: none;
+  }
+
+  section,
+  article {
+    break-inside: avoid;
+  }
+
+  /* Kâğıdın ardından boş bir ikinci sayfa atılmasın. */
+  article {
+    page-break-after: avoid;
+  }
+
+  /* Vurgu baskıda griye düşer; hiyerarşi renge değil ağırlık + cetvel +
+     boşluğa yaslandığı için çıktı bozulmaz. Gölgeler kapalı. */
+  * {
+    box-shadow: none !important;
+  }
+}
