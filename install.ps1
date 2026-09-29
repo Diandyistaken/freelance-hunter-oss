@@ -14,13 +14,16 @@ function PathYenile {
     $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
                 [Environment]::GetEnvironmentVariable("Path", "User")
 }
+function Kontrol($ne) {
+    if ($LASTEXITCODE -ne 0) { throw "$ne başarısız oldu (çıkış kodu $LASTEXITCODE). Yukarıdaki hata mesajına bak." }
+}
 function Gerekli($komut, $wingetId, $ad) {
     if (Get-Command $komut -ErrorAction SilentlyContinue) { Write-Host "  $ad var"; return }
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         throw "$ad yok ve winget bulunamadı. $ad'i elle kurup bu komutu tekrar çalıştır."
     }
     Write-Host "  $ad kuruluyor (winget $wingetId)..."
-    winget install -e --id $wingetId --silent --accept-package-agreements --accept-source-agreements
+    winget install -e --id $wingetId --silent --accept-package-agreements --accept-source-agreements; Kontrol "$ad kurulumu"
     PathYenile
     if (-not (Get-Command $komut -ErrorAction SilentlyContinue)) {
         throw "$ad kuruldu ama PATH'te görünmüyor. PowerShell'i kapatıp açıp komutu tekrar çalıştır."
@@ -36,15 +39,14 @@ if ([version]$pyv -lt [version]"3.11") { throw "Python $pyv çok eski, 3.11+ ger
 
 Adim "Kod indiriliyor → $Hedef"
 if (Test-Path (Join-Path $Hedef ".git")) {
-    git -C $Hedef pull --ff-only
+    git -C $Hedef pull --ff-only; Kontrol "git pull"
 } else {
-    git clone --depth 1 $Repo $Hedef
+    git clone --depth 1 $Repo $Hedef; Kontrol "git clone"
 }
 Set-Location $Hedef
 
 Adim "Python bağımlılıkları"
-python -m pip install --upgrade pip --quiet
-python -m pip install -r services\requirements.txt --quiet
+python -m pip install -r services\requirements.txt --quiet; Kontrol "Python bağımlılıkları"
 
 Adim "Ayar dosyası (.env)"
 New-Item -ItemType Directory -Force (Join-Path $Hedef "data\google") | Out-Null
@@ -59,8 +61,8 @@ if (-not (Test-Path ".env")) {
 
 Adim "Panel (Next.js) — bağımlılıklar + derleme, birkaç dakika sürer"
 Push-Location "apps\dashboard"
-npm ci --no-audit --no-fund
-npm run build
+npm ci --no-audit --no-fund; Kontrol "npm ci"
+npm run build; Kontrol "panel derlemesi"
 Pop-Location
 
 Adim "Bitti"
