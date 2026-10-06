@@ -25,6 +25,32 @@ export function yerelMi(host: string | null): boolean {
   return !!host && YEREL_KALIP.test(host.trim());
 }
 
+const GUVENLI_YONTEMLER = new Set(["GET", "HEAD", "OPTIONS"]);
+
+/**
+ * Veri değiştiren istek başka bir siteden mi geliyor (CSRF)? Tarayıcılar her
+ * istekte `Sec-Fetch-Site`, POST'ta `Origin` gönderir; ikisinden biri başka
+ * kaynağı gösteriyorsa reddedilir. İkisi de yoksa istek tarayıcıdan değildir
+ * (curl, Python) — bu tür istemciler CSRF'e açık değildir, geçer.
+ */
+export function capraziSiteIstegi(istek: {
+  method: string;
+  headers: { get(ad: string): string | null };
+}): boolean {
+  if (GUVENLI_YONTEMLER.has(istek.method.toUpperCase())) return false;
+  // Modern tarayıcı: karar yalnız Sec-Fetch-Site'a göre. Origin↔Host kıyası
+  // tünel/Tailscale Host'u yeniden yazarsa meşru isteği de reddederdi.
+  const site = istek.headers.get("sec-fetch-site");
+  if (site) return site !== "same-origin" && site !== "none";
+  const koken = istek.headers.get("origin");
+  if (!koken) return false;
+  try {
+    return new URL(koken).host.toLowerCase() !== (istek.headers.get("host") ?? "").toLowerCase();
+  } catch {
+    return true; // bozuk / "null" Origin
+  }
+}
+
 /**
  * Tailscale ağı (tailnet) — kullanıcı kararı 11 Eyl 2026.
  *

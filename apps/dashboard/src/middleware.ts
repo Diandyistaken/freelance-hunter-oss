@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   CEREZ_ADI,
   accessKimligi,
+  capraziSiteIstegi,
   cerezGecerliMi,
   korumaAcikMi,
   tailnetMi,
@@ -25,6 +26,14 @@ import { accessEpostasi } from "@/lib/cfAccess";
 // (403) — paneli yanlışlıkla internete açık bırakmaktansa kapalı kalsın.
 export async function middleware(istek: NextRequest) {
   const yol = istek.nextUrl.pathname;
+
+  // 0. CSRF (6 Eki 2026 güvenlik incelemesi): ev ağında şifre yok, bu yüzden
+  // kullanıcının ziyaret ettiği başka bir site tarayıcısı üzerinden panele POST
+  // atıp (ör. e-posta partisini onaylayıp) işlem yaptırabilirdi. Veri değiştiren
+  // her istek yalnız panelin kendi sayfasından gelebilir.
+  if (capraziSiteIstegi(istek)) {
+    return NextResponse.json({ ok: false, error: "başka siteden gelen istek reddedildi" }, { status: 403 });
+  }
 
   // Giriş ekranı, giriş API'si ve uygulama ikonları her zaman serbest.
   if (
