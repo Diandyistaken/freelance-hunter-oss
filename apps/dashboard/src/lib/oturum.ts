@@ -43,8 +43,9 @@ export function tailnetMi(host: string | null): boolean {
 }
 
 /**
- * Cloudflare Access kurulduğunda kimliği Cloudflare doğrular ve bu başlığı
- * ekler. İzin verilen e-posta PANEL_EPOSTA'da yazılıysa yalnız o kişi girer;
+ * `eposta` YALNIZCA imzası doğrulanmış Access jetonundan gelmeli
+ * (lib/cfAccess.ts → accessEpostasi). Düz başlık değeri buraya verilmez.
+ * İzin verilen e-posta PANEL_EPOSTA'da yazılıysa yalnız o kişi girer;
  * yazılı değilse Access'in doğruladığı herkes girer (Access zaten kimin
  * gireceğini kendi kuralında belirler).
  */

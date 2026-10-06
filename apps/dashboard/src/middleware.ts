@@ -7,6 +7,7 @@ import {
   tailnetMi,
   yerelMi,
 } from "@/lib/oturum";
+import { accessEpostasi } from "@/lib/cfAccess";
 
 // PANEL KAPISI — kimin nereden girdiğine göre (kullanıcı kararı, 10 Eyl 2026)
 //
@@ -47,8 +48,9 @@ export async function middleware(istek: NextRequest) {
   // şifresiz kullanımın yolu bu.
   if (tailnetMi(host)) return NextResponse.next();
 
-  // 2a. Cloudflare Access kimliği.
-  if (accessKimligi(istek.headers.get("cf-access-authenticated-user-email"))) {
+  // 2a. Cloudflare Access kimliği — düz e-posta başlığına DEĞİL, imzalı
+  // jetona bakılır (başlık sahte gönderilebiliyordu; bkz. lib/cfAccess.ts).
+  if (accessKimligi(await accessEpostasi(istek.headers.get("cf-access-jwt-assertion")))) {
     return NextResponse.next();
   }
 
